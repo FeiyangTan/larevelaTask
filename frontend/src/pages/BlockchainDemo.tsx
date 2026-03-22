@@ -1,70 +1,181 @@
 import { useState } from 'react';
-import { useWallet } from '../hooks/useWallet';
 import { ErrorMessage } from '../components';
+import { CHAIN_ID } from '../blockchain';
+import { useWallet } from '../hooks/useWallet';
 
 function truncateAddress(addr: string) {
   if (!addr || addr.length < 10) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
 export function BlockchainDemo() {
-  const { address, balance, txStatus, error, connect, disconnect, transfer, isConnected } = useWallet();
+  const {
+    address,
+    chainId,
+    chainName,
+    contractAddress,
+    tokenName,
+    tokenSymbol,
+    formattedBalance,
+    txStatus,
+    txHash,
+    error,
+    isConnected,
+    isCorrectNetwork,
+    connect,
+    disconnect,
+    switchNetwork,
+    transfer,
+  } = useWallet();
+
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
 
-  const handleTransfer = () => {
-    if (!toAddress || !amount) return;
-    transfer(toAddress as `0x${string}`, BigInt(amount));
+  const handleTransfer = async () => {
+    await transfer(toAddress, amount);
   };
 
   return (
-    <div>
-      <h1>Blockchain Demo</h1>
-      <p>Connect a Web3 wallet (e.g. MetaMask). Set <code>VITE_CHAIN_ID</code> and <code>VITE_CONTRACT_ADDRESS</code> in .env.</p>
+      <div style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'left' }}>
+        <h1>Blockchain Demo</h1>
+        <p>
+          This page connects to a Sepolia ERC-20 token contract. It shows one read operation
+          (<code>name</code>, <code>symbol</code>, <code>balanceOf</code>) and one write operation
+          (<code>transfer</code>).
+        </p>
 
-      {error && <ErrorMessage message={error} />}
-
-      {!isConnected ? (
-        <button type="button" onClick={connect}>
-          Connect Wallet
-        </button>
-      ) : (
-        <>
+        <div
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '12px',
+              padding: '1rem',
+              marginBottom: '1rem',
+            }}
+        >
           <p>
-            <strong>Address:</strong> {truncateAddress(address ?? '')}
-            <button type="button" onClick={disconnect} style={{ marginLeft: '1rem' }}>
-              Disconnect
-            </button>
+            <strong>Required network:</strong> {chainName} (chainId {CHAIN_ID})
           </p>
-          <p><strong>Contract balance (read):</strong> {balance != null ? balance.toString() : '—'}</p>
+          <p>
+            <strong>Current wallet network:</strong> {chainId ?? 'Not connected'}
+          </p>
+          <p>
+            <strong>Contract address:</strong>{' '}
+            {contractAddress ? contractAddress : 'Set VITE_CONTRACT_ADDRESS in .env'}
+          </p>
 
-          <div style={{ marginTop: '1rem' }}>
+          {!isConnected ? (
+              <button type="button" onClick={connect}>
+                Connect Wallet
+              </button>
+          ) : (
+              <div>
+                <p>
+                  <strong>Wallet:</strong> {truncateAddress(address ?? '')}
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <button type="button" onClick={disconnect}>
+                    Disconnect
+                  </button>
+                  {!isCorrectNetwork && (
+                      <button type="button" onClick={switchNetwork}>
+                        Switch to {chainName}
+                      </button>
+                  )}
+                </div>
+              </div>
+          )}
+        </div>
+
+        {error && <ErrorMessage message={error} />}
+
+        <div
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '12px',
+              padding: '1rem',
+              marginBottom: '1rem',
+            }}
+        >
+          <h2 style={{ marginTop: 0 }}>Read from contract</h2>
+          <p>
+            <strong>Token name:</strong> {tokenName || '—'}
+          </p>
+          <p>
+            <strong>Token symbol:</strong> {tokenSymbol || '—'}
+          </p>
+          <p>
+            <strong>Your token balance:</strong>{' '}
+            {isConnected && isCorrectNetwork ? `${formattedBalance} ${tokenSymbol}` : '—'}
+          </p>
+        </div>
+
+        <div
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '12px',
+              padding: '1rem',
+            }}
+        >
+          <h2 style={{ marginTop: 0 }}>Write to contract</h2>
+          <p>Transfer some of your Sepolia test tokens to another address.</p>
+
+          <label style={{ display: 'block', marginBottom: '0.75rem' }}>
+            Recipient address
             <input
-              type="text"
-              value={toAddress}
-              onChange={(e) => setToAddress(e.target.value)}
-              placeholder="To address (0x…)"
-              style={{ display: 'block', marginBottom: '0.5rem', padding: '0.5rem', width: '100%', maxWidth: '400px' }}
+                type="text"
+                value={toAddress}
+                onChange={(e) => setToAddress(e.target.value)}
+                placeholder="0x..."
+                style={{
+                  display: 'block',
+                  marginTop: '0.25rem',
+                  padding: '0.75rem',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
             />
+          </label>
+
+          <label style={{ display: 'block', marginBottom: '0.75rem' }}>
+            Amount ({tokenSymbol || 'token'})
             <input
-              type="text"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Amount (wei)"
-              style={{ display: 'block', marginBottom: '0.5rem', padding: '0.5rem', width: '100%', maxWidth: '400px' }}
+                type="text"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="1.5"
+                style={{
+                  display: 'block',
+                  marginTop: '0.25rem',
+                  padding: '0.75rem',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
             />
-            <button
+          </label>
+
+          <button
               type="button"
               onClick={handleTransfer}
-              disabled={txStatus === 'pending' || !toAddress || !amount}
-            >
-              {txStatus === 'pending' ? 'Pending…' : 'Transfer'}
-            </button>
-            {txStatus === 'success' && <span style={{ marginLeft: '0.5rem', color: 'green' }}>Success</span>}
-            {txStatus === 'error' && <span style={{ marginLeft: '0.5rem', color: 'red' }}>Failed</span>}
+              disabled={!isConnected || !isCorrectNetwork || txStatus === 'pending'}
+          >
+            {txStatus === 'pending' ? 'Transaction pending...' : 'Transfer'}
+          </button>
+
+          <div style={{ marginTop: '1rem' }}>
+            <p>
+              <strong>Status:</strong>{' '}
+              {txStatus === 'idle' && 'Ready'}
+              {txStatus === 'pending' && 'Transaction pending'}
+              {txStatus === 'success' && 'Success'}
+              {txStatus === 'error' && 'Failed'}
+            </p>
+            {txHash && (
+                <p>
+                  <strong>Transaction hash:</strong> {txHash}
+                </p>
+            )}
           </div>
-        </>
-      )}
-    </div>
+        </div>
+      </div>
   );
 }

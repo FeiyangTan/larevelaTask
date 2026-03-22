@@ -1,6 +1,12 @@
 /**
- * API client – replace with generated client from OpenAPI/Swagger when spec is available.
- * Base URL and auth are configurable via env.
+ * @deprecated
+ * Manual API client kept for reference only.
+ * The app now uses the Orval-generated client/hooks based on OpenAPI.
+ *
+ * See:
+ * - src/api/generated/
+ * - src/api/mutator/custom-instance.ts
+ * - src/hooks/useApi.ts
  */
 
 const getBaseUrl = () => import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';

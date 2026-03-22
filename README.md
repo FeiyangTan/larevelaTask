@@ -1,27 +1,26 @@
-# Technical Test: API Integration & Blockchain
+# Technical Test – API Integration
 
-This repo contains the **task description** and a **React frontend** starter for the technical test.
+This project completes **Task 1 (API Integration)** based on the provided starter.
 
-## Contents
+---
 
-| Item | Description |
-|------|-------------|
-| [TASK.md](./TASK.md) | Full task: API integration (Swagger/Postman) + blockchain smart contract |
-| **frontend/** | React + TypeScript app with API client and Web3 (viem) integration |
-| **docs/** | Placeholder for Swagger/OpenAPI spec and notes (see [docs/SWAGGER.md](./docs/SWAGGER.md)) |
+## What I did
 
-## Quick start
+- Replaced the manual API client with an **OpenAPI-based solution using Orval**
+- Added a minimal **Swagger / OpenAPI spec** (`docs/api-spec.json`)
+- Generated **type-safe API client + React Query hooks**
+- Updated frontend logic:
+   - `hooks/useApi.ts`
+   - `pages/ApiDemo.tsx`
+- Implemented full CRUD flow:
+   - list / create / update / delete items
+- Added **local mock backend using json-server** for testing
 
-1. Read [TASK.md](./TASK.md).
-2. Add your Swagger spec and/or Postman collection under `docs/` (or reference URLs in the task).
-3. Run the frontend:
+---
 
-   ```bash
-   cd frontend
-   npm install
-   cp .env.example .env
-   # Edit .env (VITE_API_BASE_URL, VITE_CHAIN_ID, VITE_CONTRACT_ADDRESS)
-   npm run dev
-   ```
+## Run mock API (json-server)
 
-4. Implement API endpoints and contract calls per the task; use Postman to verify the API.
+From project root（larevelaTask/）:
+
+```bash
+npx json-server@0.17.3 --watch db.json --routes routes.json --port 3000

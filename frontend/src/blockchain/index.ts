@@ -1,7 +1,19 @@
-export { CHAIN_ID, CONTRACT_ADDRESS, SUPPORTED_CHAINS } from './config';
+export {
+  CHAIN_ID,
+  RPC_URL,
+  CONTRACT_ADDRESS,
+  CHAIN,
+  CHAIN_NAME,
+  SUPPORTED_CHAIN_IDS,
+} from './config';
+
 export {
   publicClient,
-  EXAMPLE_ABI,
-  readBalance,
+  TOKEN_ABI,
+  readTokenName,
+  readTokenSymbol,
+  readTokenDecimals,
+  readTokenBalance,
   writeTransfer,
+  waitForTx,
 } from './contract';

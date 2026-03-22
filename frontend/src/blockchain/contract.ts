@@ -1,61 +1,80 @@
-import { createPublicClient, createWalletClient, http, type Address } from 'viem';
-import { mainnet } from 'viem/chains';
-import { CHAIN_ID, CONTRACT_ADDRESS } from './config';
-
-const chain = CHAIN_ID === 1 ? mainnet : mainnet; // Add your chain (e.g. sepolia) when needed
+import {
+  createPublicClient,
+  createWalletClient,
+  erc20Abi,
+  http,
+  type Address,
+  type Hash,
+} from 'viem';
+import { CHAIN, CONTRACT_ADDRESS, RPC_URL } from './config';
 
 export const publicClient = createPublicClient({
-  chain,
-  transport: http(),
+  chain: CHAIN,
+  transport: http(RPC_URL || undefined),
 });
 
-/**
- * Placeholder ABI – replace with your contract ABI from Swagger/artifact.
- * Example: read balance, and a write (e.g. transfer).
- */
-export const EXAMPLE_ABI = [
-  {
-    name: 'balanceOf',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'account', type: 'address' }],
-    outputs: [{ type: 'uint256' }],
-  },
-  {
-    name: 'transfer',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'to', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-    ],
-    outputs: [{ type: 'bool' }],
-  },
-] as const;
+export const TOKEN_ABI = erc20Abi;
 
-export async function readBalance(account: Address): Promise<bigint> {
-  if (!CONTRACT_ADDRESS) return 0n;
+function assertContractAddress() {
+  if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '0x0000000000000000000000000000000000000000') {
+    throw new Error('Contract address is not configured. Set VITE_CONTRACT_ADDRESS in .env.');
+  }
+}
+
+export async function readTokenName() {
+  assertContractAddress();
   return publicClient.readContract({
     address: CONTRACT_ADDRESS,
-    abi: EXAMPLE_ABI,
+    abi: TOKEN_ABI,
+    functionName: 'name',
+  });
+}
+
+export async function readTokenSymbol() {
+  assertContractAddress();
+  return publicClient.readContract({
+    address: CONTRACT_ADDRESS,
+    abi: TOKEN_ABI,
+    functionName: 'symbol',
+  });
+}
+
+export async function readTokenDecimals() {
+  assertContractAddress();
+  return publicClient.readContract({
+    address: CONTRACT_ADDRESS,
+    abi: TOKEN_ABI,
+    functionName: 'decimals',
+  });
+}
+
+export async function readTokenBalance(account: Address) {
+  assertContractAddress();
+  return publicClient.readContract({
+    address: CONTRACT_ADDRESS,
+    abi: TOKEN_ABI,
     functionName: 'balanceOf',
     args: [account],
   });
 }
 
 export async function writeTransfer(
-  walletClient: ReturnType<typeof createWalletClient>,
-  account: Address,
-  to: Address,
-  amount: bigint
+    walletClient: ReturnType<typeof createWalletClient>,
+    account: Address,
+    to: Address,
+    amount: bigint,
 ) {
-  if (!CONTRACT_ADDRESS) throw new Error('Contract address not set');
+  assertContractAddress();
   return walletClient.writeContract({
     address: CONTRACT_ADDRESS,
-    abi: EXAMPLE_ABI,
+    abi: TOKEN_ABI,
     functionName: 'transfer',
     args: [to, amount],
     account,
-    chain,
+    chain: CHAIN,
   });
+}
+
+export async function waitForTx(hash: Hash) {
+  return publicClient.waitForTransactionReceipt({ hash });
 }
