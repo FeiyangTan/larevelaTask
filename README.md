@@ -24,14 +24,15 @@ npx json-server@0.17.3 --watch db.json --routes routes.json --port 3000
 ---
 ## What I did
 
-- Replaced the manual API client with an **OpenAPI-based solution using Orval**
 - Added a minimal **Swagger / OpenAPI spec** (`docs/api-spec.json`)
-- Generated **type-safe API client + React Query hooks**
-- Updated frontend logic:
+- Replaced the manual API client with an **OpenAPI-based solution using Orval**
+- Added a custom Axios mutator to centralize API request configuration (base URL, auth headers)
+  - `api/mutator/custom-instance.ts`
+- Added a wrapper layer for API hooks:
   - `hooks/useApi.ts`
-  - `pages/ApiDemo.tsx`
-- Implemented full CRUD flow:
+- Implemented full CRUD flow at frontend page:
   - list / create / update / delete items
+  - `pages/ApiDemo.tsx`
 - Added **local mock backend using json-server** for testing
 
 ---
@@ -42,37 +43,32 @@ npx json-server@0.17.3 --watch db.json --routes routes.json --port 3000
 ![API Demo](docs/1.png)
 
 ---
-
+# PART#2
 ## What I did
 
 - Integrated **Web3 wallet connection** using viem 
-- Configured **Sepolia test network** (chain ID, RPC, contract via env)
+- Configured **Sepolia test network** , infura key, and a smart contract deployed 
+  - `.env`
 - Implemented reusable blockchain layer:
   - `blockchain/config.ts` (network + contract config)
   - `blockchain/contract.ts` (contract read/write helpers)
 - Built a custom React hook:
   - `hooks/useWallet.ts` to manage wallet state and interactions
-- Implemented contract interactions:
-  - Read:
+- Updated UI and Implemented contract interactions:
+  - `pages/BlockchainDemo.tsx`
+  - wallet connection status
+  - token info display
     - `name()`
     - `symbol()`
     - `balanceOf(address)`
-  - Write:
+  - transfer form + feedback
     - `transfer(address, amount)`
 - Added full transaction lifecycle handling:
   - pending → success → failed
   - transaction hash tracking
-- Implemented network validation:
-  - detect wrong network
-  - allow switching to Sepolia
-- Updated UI:
-  - `pages/BlockchainDemo.tsx`
-  - wallet connection status
-  - token info display
-  - transfer form + feedback
 - Added reactive updates for:
   - account changes
-  - network changes
+  - network changes(detect wrong network)
 
 
 ## How to Test Blockchain
